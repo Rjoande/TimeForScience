@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Keep MSBuild intermediates off the exFAT game drive (1 MB clusters waste space on small files). -->
+    <BaseIntermediateOutputPath>$(LOCALAPPDATA)\TimeForScience\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(LOCALAPPDATA)\TimeForScience\bin\$(MSBuildProjectName)\</BaseOutputPath>
+  </PropertyGroup>
+</Project>
