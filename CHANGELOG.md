@@ -15,15 +15,15 @@ TimeForScience makes science experiments take real time to complete — proporti
 - **Background completion via inbox message** (with the real experiment results text) instead of a results dialog popping up for a vessel you're not watching; the normal stock dialog still shows when you're actually looking at the vessel.
 - **Optional Electric Charge consumption** (Difficulty Settings, off by default): EC/s proportional to the experiment's base science value, with a ramped throttle model so a brief power shortfall slows progress instead of hard-pausing it. Idle-button estimate can show a total cost or an EC/s rate, your choice.
 - **Configurable exclusions** (`Config/Exclusions.cfg`): crew report, EVA report and surface sample stay quick/free by default; add custom or modded experiment IDs to exclude them from the timer and/or EC consumption too.
-- **Compatibility**: stock science modules, DMagicScienceAnimate, Universal Storage 2's science modules, `[x]_Science!` (including "run all"), ContractConfigurator, ResearchBodies, SCANsat, FinalFrontier, Strategia, and AGExt/KRAB action-group deploys — all verified, no dedicated bridge needed beyond DMagic/Universal Storage 2's own independent deploy paths.
-- **Localization**: English and Italian, full parity (every player-facing string in both).
+- **Compatibility**: stock science modules, DMagicScienceAnimate, Universal Storage 2's science modules, `[x]_Science!` (including "run all"), ContractConfigurator, ResearchBodies, SCANsat, FinalFrontier, Strategia, and AGExt/KRAB/KRILL action-group deploys. All verified, no dedicated bridge needed beyond DMagic/Universal Storage 2's own independent deploy paths.
+- **Localization**: English and Italian.
 
 ### Known limitations
 
-- Multi-slot DMagic/Universal Storage 2 experiments don't complete while their vessel is unloaded — deferred until the vessel reloads.
+- Multi-slot DMagic/Universal Storage 2 experiments don't complete while their vessel is unloaded (deferred until the vessel reloads).
 - DMagic asteroid science runs instantly rather than timed (synthetic per-encounter subjects don't fit the duration model).
 - No "pop a dialog on return to the vessel" alternative to the background inbox message.
-- Electric Charge rate is a single global multiplier, not per-situation.
+- By design, Electric Charge rate is a single global multiplier, not per-situation.
 
 ### Requirements
 
