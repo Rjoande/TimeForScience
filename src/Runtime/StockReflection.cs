@@ -4,9 +4,9 @@ using HarmonyLib;
 namespace TimeForScience
 {
     /// <summary>
-    /// Cached reflection access to the private ModuleScienceExperiment members we
-    /// need but can't reach directly - the module itself stays stock, never
-    /// subclassed or renamed (CLAUDE.md constraint #4).
+    /// Cached reflection access to the private ModuleScienceExperiment
+    /// members we need but can't reach directly - the module itself stays
+    /// stock, never subclassed or renamed.
     /// </summary>
     internal static class StockReflection
     {

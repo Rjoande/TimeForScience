@@ -1,18 +1,9 @@
 namespace TimeForScience
 {
     /// <summary>
-    /// One tracked experiment run: the subject and duration are frozen at deploy
-    /// time (edge-cases.md, stock-science-flow.md §5); only the accrued time and
-    /// the part's live location change afterwards. Tracked by part flightID +
-    /// module index rather than by vessel, so the run follows the part through
-    /// docking/undocking (decision G).
-    ///
-    /// Biome/DataAmount/XmitDataScalar/ScienceValueRatio/IsDMagic/ExperimentsLimit
-    /// are frozen here (not just derivable from a live module) because STEP 5
-    /// needs to complete a run on an unloaded vessel, where no live PartModule
-    /// exists to read xmitDataScalar/totalScienceLevel/experimentsLimit from -
-    /// all three are non-persistent KSPFields (design-time constants from the
-    /// part config), so they must be captured while the module is still alive.
+    /// One tracked experiment run. Subject and duration are frozen at deploy
+    /// time. Tracked by part flightID + module index rather than by vessel,
+    /// so a run follows its part through docking/undocking.
     /// </summary>
     internal class TimeForScienceRun
     {
@@ -22,40 +13,41 @@ namespace TimeForScience
         internal string SubjectId;
         internal string BodyName;
         internal string Biome;
-        internal int Situation; // informational only; live completion reads the module's own frozen field
+        internal int Situation; // live completion reads the module's own frozen field instead
         internal double NeededSeconds;
         internal double AccruedSeconds;
         internal double LastTickUT;
         internal bool ShowDialog;
 
+        // Frozen because completing a run on an unloaded vessel has no live
+        // module to read them from (all three are non-persistent KSPFields).
         internal float DataAmount;
         internal float XmitDataScalar;
         internal float ScienceValueRatio;
         internal bool IsDMagic;
         internal int ExperimentsLimit;
 
-        // Universal Storage 2's USAdvancedScience (notes/compat-us2.md):
-        // architecturally a near-twin of DMagic, but a distinct type/method
-        // signature, hence its own flags rather than folding into IsDMagic.
         internal bool IsUS2Advanced;
         internal bool Overwrite;
 
-        // Electric Charge consumption (user request 2026-07-19, off by
-        // default - see notes/ec-consumption.md). ECRate is EC/s, frozen at
-        // registration same as the other config-time constants above; 0 means
-        // "feature disabled when this run started", not just "free experiment".
-        // Throttle (0..1) is the ramped power-availability ratio; starts at 1
-        // (assume full power until proven otherwise) and eases toward whatever
-        // was actually drawable each tick rather than snapping, so a brief
-        // shortfall doesn't stall progress outright and a big background/warp
-        // tick still behaves like a plain average (see TimeForScienceScenario).
+        // Frozen from module.rerunnable - non-repeatable experiments (stock
+        // Materials Bay/Mystery Goo and modded equivalents) never bank.
+        internal bool Rerunnable = true;
+
+        // 0 means the EC feature was off when this run started.
         internal float ECRate;
+        // Ramped power-availability ratio (0..1); eases toward what was
+        // actually drawable each tick instead of snapping.
         internal float Throttle = 1f;
 
-        /// <summary>Both DMagic and US2Advanced build their ScienceData with a
-        /// hardcoded ratio of 1 (they don't forward scienceValueRatio at all),
-        /// unlike plain stock/USSimpleScience which do - see makeScience()/
-        /// MakeData() in their respective notes.</summary>
+        // Frozen via a part-module-name check, not a RealBattery API call.
+        internal bool HasRealBattery;
+        // EC accrued while unloaded, reported to RealBattery once loaded again.
+        internal float PendingECDebt;
+        // UT the current PendingECDebt balance started accruing.
+        internal double DebtSinceUT;
+
+        /// <summary>DMagic and US2Advanced always build ScienceData with ratio 1.</summary>
         internal float EffectiveScienceValueRatio => (IsDMagic || IsUS2Advanced) ? 1f : ScienceValueRatio;
 
         internal void Save(ConfigNode node)
@@ -78,8 +70,12 @@ namespace TimeForScience
             node.AddValue("experimentsLimit", ExperimentsLimit);
             node.AddValue("isUS2Advanced", IsUS2Advanced);
             node.AddValue("overwrite", Overwrite);
+            node.AddValue("rerunnable", Rerunnable);
             node.AddValue("ecRate", ECRate);
             node.AddValue("throttle", Throttle);
+            node.AddValue("hasRealBattery", HasRealBattery);
+            node.AddValue("pendingEcDebt", PendingECDebt);
+            node.AddValue("debtSinceUT", DebtSinceUT);
         }
 
         internal static TimeForScienceRun Load(ConfigNode node)
@@ -103,8 +99,12 @@ namespace TimeForScience
             node.TryGetValue("experimentsLimit", ref run.ExperimentsLimit);
             node.TryGetValue("isUS2Advanced", ref run.IsUS2Advanced);
             node.TryGetValue("overwrite", ref run.Overwrite);
+            node.TryGetValue("rerunnable", ref run.Rerunnable);
             node.TryGetValue("ecRate", ref run.ECRate);
             node.TryGetValue("throttle", ref run.Throttle);
+            node.TryGetValue("hasRealBattery", ref run.HasRealBattery);
+            node.TryGetValue("pendingEcDebt", ref run.PendingECDebt);
+            node.TryGetValue("debtSinceUT", ref run.DebtSinceUT);
             return run;
         }
     }

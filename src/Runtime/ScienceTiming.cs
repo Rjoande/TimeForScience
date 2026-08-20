@@ -3,15 +3,13 @@ using System;
 namespace TimeForScience
 {
     /// <summary>
-    /// Shared math for freezing a science subject at deploy time and turning its
-    /// value into a run duration. Used by the stock ModuleScienceExperiment patch
-    /// (and, from a later milestone, the DMagic patch) so both compute time the
-    /// same way. See notes/stock-science-flow.md and notes/edge-cases.md.
+    /// Shared math for freezing a science subject at deploy time and turning
+    /// its value into a run duration, used identically by the stock, DMagic
+    /// and US2 deploy paths.
     /// </summary>
     internal static class ScienceTiming
     {
-        // Below this, a run is considered "free": the original call proceeds
-        // untouched and is instantaneous (decision A2 in edge-cases.md).
+        // Below this, a run is considered "free": instantaneous, untouched.
         internal const float ScienceEpsilon = 0.01f;
 
         internal static ExperimentSituations ComputeCurrentSituation(Vessel vessel)
@@ -49,9 +47,8 @@ namespace TimeForScience
             return ComputeScienceValueForData(dataAmount, experiment, body, situation, biome, subjectId, scienceValueRatio);
         }
 
-        /// <summary>Variant with an explicit data amount, for modules that scale
-        /// it themselves (DMagic multiplies by totalScienceLevel, see
-        /// notes/compat-dmagic.md).</summary>
+        /// <summary>Variant with an explicit data amount, for modules that
+        /// scale it themselves (DMagic multiplies by totalScienceLevel).</summary>
         internal static float ComputeScienceValueForData(float dataAmount, ScienceExperiment experiment, CelestialBody body, ExperimentSituations situation, string biome, string subjectId, float scienceValueRatio)
         {
             ScienceSubject subject = ResearchAndDevelopment.GetSubjectByID(subjectId)
@@ -60,13 +57,8 @@ namespace TimeForScience
             return ResearchAndDevelopment.GetScienceValue(dataAmount, scienceValueRatio, subject, 1f);
         }
 
-        /// <summary>
-        /// Placeholder balancing: one second of run time per point of science
-        /// value, regardless of situation. Space is meant to eventually run on a
-        /// slower (minutes) scale once atmosphere/space/surface are tuned
-        /// separately - left open on purpose, see edge-cases.md §J. Testing
-        /// default confirmed by the user: seconds everywhere for now.
-        /// </summary>
+        /// <summary>Placeholder balancing: one second of run time per point of
+        /// science value, regardless of situation.</summary>
         internal static double ComputeRunSeconds(float scienceValue, Vessel vessel)
         {
             return Math.Max(scienceValue, 0f) * SecondsPerScience(Category(vessel));
@@ -92,7 +84,7 @@ namespace TimeForScience
 
         private static double SecondsPerScience(TimeCategory category)
         {
-            // All three equal for now (testing default, edge-cases.md §J).
+            // All three equal for now.
             switch (category)
             {
                 case TimeCategory.Space:
@@ -106,14 +98,9 @@ namespace TimeForScience
 
         /// <summary>
         /// Full breakdown duration ("1h 12m 54s", "1m 39s", "39s"), dropping
-        /// only the leading units that are zero (user request 2026-07-15,
-        /// revised from an earlier single-coarsest-unit format after the
-        /// player reported the countdown seeming not to update - most likely
-        /// that format's own doing: many small changes stayed within the same
-        /// rounded unit and never showed on screen). No stock utility fits:
-        /// KSPUtil.PrintTimeCompact uses the in-game calendar (colon-separated,
-        /// 6-hour Kerbin days) rather than plain h/m/s letters. Used for both
-        /// the idle estimate and the live countdown.
+        /// only the leading units that are zero. No stock utility fits:
+        /// KSPUtil.PrintTimeCompact uses the in-game calendar (6-hour Kerbin
+        /// days) rather than plain h/m/s letters.
         /// </summary>
         internal static string FormatRemaining(double secondsRemaining)
         {

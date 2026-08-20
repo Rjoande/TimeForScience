@@ -6,18 +6,15 @@ namespace TimeForScience
 {
     /// <summary>
     /// Soft-dependency access to Universal Storage 2's USAdvancedScience
-    /// (GooBayWedge, MapCamWedge, MatBayWedge - see notes/compat-us2.md).
-    /// Unlike DMagic, experiment/xmitDataScalar/scienceValueRatio are public
-    /// fields inherited straight from ModuleScienceExperiment, so this bridge
-    /// only needs to resolve the type, the private RunExperiment(bool,bool)
-    /// method, and the experimentsLimit field (declared on the subclass
-    /// itself, not inherited).
+    /// (GooBayWedge, MapCamWedge, MatBayWedge). Unlike DMagic,
+    /// experiment/xmitDataScalar/scienceValueRatio are public fields
+    /// inherited straight from ModuleScienceExperiment, so this bridge only
+    /// needs to resolve the type, the private RunExperiment(bool,bool)
+    /// method, and the experimentsLimit field.
     ///
-    /// USSimpleScience (ThermoBaroWedge/AccelGravWedge/AdvancedMicroSatWedge)
-    /// needs no bridge at all: it chains to the real base
+    /// USSimpleScience needs no bridge at all: it chains to the real base
     /// ModuleScienceExperiment coroutine, already covered by
-    /// Patch_ModuleScienceExperiment.cs once its GetType() restriction was
-    /// removed (2026-07-18).
+    /// Patch_ModuleScienceExperiment.cs.
     /// </summary>
     internal static class US2Bridge
     {

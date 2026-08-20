@@ -5,12 +5,10 @@ using HarmonyLib;
 namespace TimeForScience
 {
     /// <summary>
-    /// Soft-dependency access to DMModuleScienceAnimateGeneric, resolved by name
-    /// so TimeForScience has no compile-time reference to the DMagic DLL. The
-    /// installed build (v0.23) uses namespace DMModuleScienceAnimateGeneric_NM;
-    /// older builds (like the _source drop) used the un-suffixed namespace, so
-    /// both are tried. Member signatures verified against the installed DLL
-    /// (notes/compat-dmagic.md).
+    /// Soft-dependency access to DMModuleScienceAnimateGeneric, resolved by
+    /// name so TimeForScience has no compile-time reference to the DMagic
+    /// DLL. Newer builds use namespace DMModuleScienceAnimateGeneric_NM;
+    /// older ones use the un-suffixed namespace, so both are tried.
     /// </summary>
     internal static class DMagicBridge
     {
@@ -88,8 +86,8 @@ namespace TimeForScience
             return ExperimentsLimitField != null ? (int)ExperimentsLimitField.GetValue(module) : 1;
         }
 
-        /// <summary>Asteroid science uses synthetic subjects (DMAsteroidScienceGen):
-        /// bypassed entirely in v1, decision G3 in edge-cases.md.</summary>
+        /// <summary>Asteroid science uses synthetic subjects
+        /// (DMAsteroidScienceGen): bypassed entirely.</summary>
         internal static bool AsteroidInPlay(ModuleScienceExperiment module)
         {
             if (AsteroidReportsField == null || !(bool)AsteroidReportsField.GetValue(module))

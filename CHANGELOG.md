@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.0] — Banked progress and RealBattery compatibility
+
+### Added
+
+- **Bank Progress on Other Biomes** (Difficulty Settings, off by default): while an observation is running, time spent flying over a different biome in the same situation (one that's still worth observing) is banked per-biome instead of wasted, shown in a collapsible "Banked biomes" PAW group. A later Deploy on a banked biome starts with that time already credited. Requires a rerunnable experiment and a science container on board. Idea from forum user DeadJohn, who pointed out that opportunistic multi-biome passes (e.g. polar orbits over many small biomes) were otherwise always wasted time.
+- **RealBattery compatibility**: if [RealBattery](https://github.com/Rjoande/RealBattery) is installed, EC debt accrued by a timed observation while the vessel is unloaded is settled through RealBattery's own reporting API (`RealBatteryPowerLedger`) instead of a blind stock draw, so it plays correctly with RealBattery's charge/discharge simulation.
+- **Difficulty presets**: EC consumption and its rate scale with the stock preset (off on Easy/Normal, on from Moderate up, higher rate on Hard); banked progress defaults on for Easy only, off elsewhere, matching the mod's own off-by-default setting. Custom preset leaves your own choices untouched.
+
+### Changed
+
+- Difficulty Settings: the EC Consumption Rate slider no longer has an accompanying text-entry box (it was rendering at full row width, unfixable through the stock UI's own attributes); the slider alone remains just as precise.
+- Difficulty Settings: EC Consumption Rate and Show EC Cost As Rate are now greyed out (not hidden) whenever Consume Electric Charge is off, making the dependency visible.
+
+### Known limitations
+
+- The "Banked biomes" PAW group shows at most 6 rows per module (the rest collapse into a "+N more" line); all banked biomes still count fully toward a later Deploy regardless of whether they're shown.
+
 ## [0.1.0] — First public release
 
 ### What it is

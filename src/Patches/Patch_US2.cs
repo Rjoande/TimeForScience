@@ -5,17 +5,15 @@ namespace TimeForScience
 {
     /// <summary>
     /// Interception for Universal Storage 2's USAdvancedScience (GooBayWedge,
-    /// MapCamWedge, MatBayWedge - see notes/compat-us2.md). Architecturally a
-    /// near-twin of DMagic's runExperiment (shared authorship, in fact): its
-    /// own independent RunExperiment(bool silent, bool overwrite), called
-    /// after CanConduct() and any deploy animation, right before MakeData()
-    /// creates the ScienceData. 533 bytes of IL - safely above Mono's 20-byte
-    /// inline limit, so a plain prefix works (never patch the 8-byte
-    /// DeployExperiment() that calls into it). Unlike DMagic, experiment/
+    /// MapCamWedge, MatBayWedge). Architecturally a near-twin of DMagic's
+    /// runExperiment: its own independent RunExperiment(bool silent, bool
+    /// overwrite), called after CanConduct() and any deploy animation, right
+    /// before MakeData() creates the ScienceData. Well above Mono's inline
+    /// limit, so a plain prefix works (never patch DeployExperiment() that
+    /// calls into it - it's inlined). Unlike DMagic, experiment/
     /// xmitDataScalar are public inherited fields - no reflection needed for
-    /// the science math itself, only to resolve the type and invoke the
-    /// private method. All patches gated by Prepare(): no US2 install, no
-    /// patch attempted.
+    /// the science math itself. All patches gated by Prepare(): no US2
+    /// install, no patch attempted.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_US2_RunExperiment
@@ -50,8 +48,6 @@ namespace TimeForScience
                 return false;
             }
 
-            // Consistency with the stock path/whitelist file, even though no
-            // built-in exclusion currently maps to a US2 experimentID.
             if (ScienceExclusions.IsExcludedFromTimer(__instance.experiment.id))
             {
                 return true;
@@ -84,8 +80,8 @@ namespace TimeForScience
         }
     }
 
-    /// <summary>§G2 for US2 (edge-cases.md): resetting while a run is active
-    /// aborts it cleanly with no data; the original always proceeds.</summary>
+    /// <summary>Resetting while a run is active aborts it cleanly with no
+    /// data; the original always proceeds.</summary>
     [HarmonyPatch]
     internal static class Patch_US2_ResetExperiment
     {

@@ -7,19 +7,17 @@ namespace TimeForScience
     /// <summary>
     /// Interception point for stock experiments. The obvious targets
     /// (OnScienceComplete, resetExperiment) are 18/14 bytes of IL - under
-    /// Mono's 20-byte JIT inline limit - so a detour on them is never reached
-    /// (verified in-game 2026-07-11; see notes/stock-science-flow.md §5c).
+    /// Mono's 20-byte JIT inline limit - so a detour on them is never reached.
     /// Instead we patch the coroutine state machines' MoveNext: Unity invokes
     /// them through IEnumerator interface dispatch, which can never be inlined.
     ///
     /// The first MoveNext (state 0) runs synchronously inside StartCoroutine,
     /// at the exact moment the small stub would have run: past every stock
     /// pre-check, the overwrite-memory dialog and the fx animations, and
-    /// before Deployed is set. A run worth ~0 science is left alone (instant,
-    /// decision A2); otherwise the completion is deferred to
-    /// TimeForScienceScenario, which re-invokes OnScienceComplete under an
-    /// IsCompleting guard so the untouched stock completion (popup, GameEvents,
-    /// persistence) runs later.
+    /// before Deployed is set. A run worth ~0 science is left alone (instant);
+    /// otherwise the completion is deferred to TimeForScienceScenario, which
+    /// re-invokes OnScienceComplete under an IsCompleting guard so the
+    /// untouched stock completion (popup, GameEvents, persistence) runs later.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_OnScienceCompleteDelay_MoveNext
@@ -51,19 +49,13 @@ namespace TimeForScience
                 return true;
             }
 
-            // No GetType() restriction here on purpose (removed 2026-07-18,
-            // see notes/compat-us2.md): OnScienceCompleteDelay/resetExperiment
-            // are private and non-virtual, so a subclass can only ever reach
-            // this coroutine by explicitly calling into the base
-            // implementation (base.DeployExperiment()/base.ResetExperiment()),
-            // which makes our interception exactly as correct for it as for a
-            // plain stock module. Subclasses with their own independent deploy
-            // flow (DMagic, Universal Storage 2's USAdvancedScience) never call
-            // into this coroutine at all, guard or no guard - they get their
-            // own dedicated patch instead. USSimpleScience (US2's
-            // ThermoBaroWedge/AccelGravWedge/AdvancedMicroSatWedge) is the
-            // discovered case that DOES chain to the real base method and was
-            // wrongly excluded by the old exact-type check.
+            // No GetType() restriction: OnScienceCompleteDelay/resetExperiment
+            // are private and non-virtual, so a subclass can only reach this
+            // coroutine by explicitly calling the base implementation, which
+            // makes our interception exactly as correct for it as for a plain
+            // stock module. Subclasses with their own independent deploy flow
+            // (DMagic, US2's USAdvancedScience) never call into this coroutine
+            // at all - they get their own dedicated patch instead.
             TimeForScienceScenario scenario = TimeForScienceScenario.Instance;
             if (scenario == null)
             {
@@ -90,11 +82,6 @@ namespace TimeForScience
                 return false;
             }
 
-            // EVA report and surface sample run on the kerbalEVA part and stay
-            // instant (decision H, edge-cases.md). Crew report is a different
-            // experimentID on the command part and IS timed like everything else
-            // (it's excluded from EC only, see ScienceExclusions). Also honors
-            // any custom experimentID added via Config/Exclusions.cfg.
             if (ScienceExclusions.IsExcludedFromTimer(module.experimentID))
             {
                 return true;
@@ -130,11 +117,10 @@ namespace TimeForScience
     }
 
     /// <summary>
-    /// User decision (edge-cases.md §G2): resetting an experiment while a run
-    /// is active aborts it with no data. Same MoveNext technique as above (the
-    /// resetExperiment stub is 14 bytes of IL, inlined). Side-effect only: the
-    /// stock reset always proceeds - on an undeployed module it is harmless
-    /// and doubles as our "cancel" animation for free.
+    /// Resetting an experiment while a run is active aborts it with no data.
+    /// Same MoveNext technique as above. Side-effect only: the stock reset
+    /// always proceeds - on an undeployed module it is harmless and doubles
+    /// as our "cancel" animation for free.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_ResetExperiment_MoveNext

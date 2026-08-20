@@ -5,19 +5,10 @@ namespace TimeForScience
 {
     /// <summary>
     /// Configurable exclusions from timing and/or EC consumption, by
-    /// experimentID (user request 2026-07-21). No hardcoded IDs in code on
-    /// purpose (simplified 2026-07-21): the stock defaults (crewReport
-    /// excluded from EC only - decision H, edge-cases.md - and evaReport/
-    /// surfaceSample excluded from both timer and EC, since they're quick
-    /// personal observations rather than instrument runs) ship as active
-    /// entries in GameData/TimeForScience/Config/Exclusions.cfg, the exact
-    /// same mechanism a custom/modded experimentID uses. One list, one file,
-    /// no duplication between C# and cfg.
-    ///
-    /// Entries come from any TIMEFORSCIENCE_EXCLUSION node in GameData,
-    /// loaded lazily on first use rather than from a startup KSPAddon, so
-    /// there's no scene-timing dependency on GameDatabase being fully
-    /// populated.
+    /// experimentID. No hardcoded IDs in code: the stock defaults ship as
+    /// active entries in Config/Exclusions.cfg, same mechanism a custom or
+    /// modded experimentID uses. Entries load lazily on first use, so there's
+    /// no scene-timing dependency on GameDatabase being fully populated.
     /// </summary>
     internal static class ScienceExclusions
     {

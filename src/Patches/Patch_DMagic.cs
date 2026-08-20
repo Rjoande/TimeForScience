@@ -5,18 +5,16 @@ using UnityEngine;
 namespace TimeForScience
 {
     /// <summary>
-    /// Interception for DMModuleScienceAnimateGeneric - the MAIN science module
-    /// of this install (ReStockPlus converts Goo/Materials Bay to it; all of
-    /// Bluedog_DB uses it; 105 modules total, see notes/compat-dmagic.md).
+    /// Interception for DMModuleScienceAnimateGeneric.
     ///
     /// runExperiment(bool silent) is the exact analogue of the stock
     /// OnScienceComplete: called after canConduct(), the deploy animation and
     /// the ElectricCharge drain, right before data creation and the results
-    /// dialog. It is 147 bytes of IL on the installed DLL - safely above Mono's
-    /// 20-byte inline limit - so a plain prefix works here (unlike the stock
-    /// path, which needed the coroutine MoveNext technique; never patch
-    /// DMagic's 8-byte DeployExperiment). All patches in this file are gated by
-    /// Prepare(): if the DMagic DLL is absent, nothing is attempted.
+    /// dialog. Well above Mono's 20-byte inline limit, so a plain prefix works
+    /// here (unlike the stock path, which needs the coroutine MoveNext
+    /// technique; never patch DMagic's DeployExperiment - it's inlined). All
+    /// patches in this file are gated by Prepare(): if the DMagic DLL is
+    /// absent, nothing is attempted.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_DMagic_RunExperiment
@@ -51,7 +49,7 @@ namespace TimeForScience
                 return false;
             }
 
-            // Asteroid science uses synthetic subjects: instant in v1 (G3).
+            // Asteroid science uses synthetic subjects: instant, no timer.
             if (DMagicBridge.AsteroidInPlay(__instance))
             {
                 return true;
@@ -63,8 +61,6 @@ namespace TimeForScience
                 return true;
             }
 
-            // Consistency with the stock path/whitelist file, even though no
-            // built-in exclusion currently maps to a DMagic experimentID.
             if (ScienceExclusions.IsExcludedFromTimer(experiment.id))
             {
                 return true;
@@ -98,9 +94,9 @@ namespace TimeForScience
         }
     }
 
-    /// <summary>§G2 for DMagic (edge-cases.md): both Reset and Retract while a
-    /// run is active abort it cleanly with no data; the original always
-    /// proceeds (retracting the instrument is the visual "cancel").</summary>
+    /// <summary>Reset and Retract while a run is active abort it cleanly with
+    /// no data; the original always proceeds (retracting the instrument is
+    /// the visual "cancel").</summary>
     [HarmonyPatch]
     internal static class Patch_DMagic_ResetExperiment
     {

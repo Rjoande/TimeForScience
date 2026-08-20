@@ -6,10 +6,8 @@ namespace TimeForScience
 {
     /// <summary>
     /// Difficulty Settings for the optional Electric Charge consumption
-    /// feature (user request 2026-07-19). Off by default: existing behavior
-    /// (free observation) is unchanged unless the player opts in. Applies in
-    /// any game mode - EC is a resource-management concern, not tied to
-    /// career progression the way the rest of the mod is mode-agnostic too.
+    /// feature. Off by default. Applies in any game mode - EC is a
+    /// resource-management concern, not tied to career progression.
     /// </summary>
     public class TimeForScienceSettings : GameParameters.CustomParameterNode
     {
@@ -19,19 +17,22 @@ namespace TimeForScience
         public override string Section => Localizer.Format("#LOC_T4S_ModName");
         public override string DisplaySection => Localizer.Format("#LOC_T4S_ModName");
         public override int SectionOrder => 1;
-        public override bool HasPresets => false;
+        public override bool HasPresets => true;
 
         [GameParameters.CustomParameterUI("#LOC_T4S_Settings_EnableEC", toolTip = "#LOC_T4S_Settings_EnableEC_Tooltip")]
         public bool EnableECConsumption = false;
 
-        [GameParameters.CustomFloatParameterUI("#LOC_T4S_Settings_ECRate", minValue = 0f, maxValue = 0.1f, stepCount = 100, displayFormat = "0.000", addTextField = true, toolTip = "#LOC_T4S_Settings_ECRate_Tooltip")]
+        // addTextField = false: the stock text box (DialogGUITextInput) always
+        // renders at flexible/full-row width regardless of any attribute here,
+        // overflowing the Difficulty Settings column - slider-only avoids it.
+        [GameParameters.CustomFloatParameterUI("#LOC_T4S_Settings_ECRate", minValue = 0f, maxValue = 0.1f, stepCount = 100, displayFormat = "0.000", addTextField = false, toolTip = "#LOC_T4S_Settings_ECRate_Tooltip")]
         public float ECPerScienceRate = 0.01f;
 
-        // Display choice for the idle Deploy-button estimate (user request
-        // 2026-07-21): independent of any specific power-management mod -
-        // just a personal preference for reading a lump total vs. a rate.
         [GameParameters.CustomParameterUI("#LOC_T4S_Settings_ECAsRate", toolTip = "#LOC_T4S_Settings_ECAsRate_Tooltip")]
         public bool ShowECRateInsteadOfTotal = false;
+
+        [GameParameters.CustomParameterUI("#LOC_T4S_Settings_EnableBanking", toolTip = "#LOC_T4S_Settings_EnableBanking_Tooltip")]
+        public bool EnableBankedProgress = false;
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
         {
@@ -40,6 +41,13 @@ namespace TimeForScience
 
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
+            // Rate and rate-display only mean anything with EC consumption
+            // on - greyed out rather than hidden, so the dependency is
+            // visible (same pattern as SituationalAwareness's SaSettings).
+            if (member.Name == nameof(ECPerScienceRate) || member.Name == nameof(ShowECRateInsteadOfTotal))
+            {
+                return EnableECConsumption;
+            }
             return true;
         }
 
@@ -50,14 +58,39 @@ namespace TimeForScience
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
+            // Custom is left untouched - it's meant to preserve whatever the
+            // player already set. EC settings follow the stock difficulty
+            // scale (off on Easy, harsher rate on Hard); banked progress is
+            // a convenience rather than a difficulty knob, so it's only on
+            // for Easy and off everywhere else, matching the shipped default.
+            switch (preset)
+            {
+                case GameParameters.Preset.Easy:
+                    EnableECConsumption = false;
+                    ECPerScienceRate = 0.01f;
+                    EnableBankedProgress = true;
+                    break;
+                case GameParameters.Preset.Normal:
+                    EnableECConsumption = false;
+                    ECPerScienceRate = 0.01f;
+                    EnableBankedProgress = false;
+                    break;
+                case GameParameters.Preset.Moderate:
+                    EnableECConsumption = true;
+                    ECPerScienceRate = 0.01f;
+                    EnableBankedProgress = false;
+                    break;
+                case GameParameters.Preset.Hard:
+                    EnableECConsumption = true;
+                    ECPerScienceRate = 0.02f;
+                    EnableBankedProgress = false;
+                    break;
+            }
         }
 
-        /// <summary>
-        /// EC/s for this experiment right now, or 0 if the feature is off. A
-        /// single frozen value doubles as "disabled" (0) and "rate", so
-        /// TimeForScienceRun only needs one field (ECRate) rather than a
-        /// separate enabled flag - see notes/ec-consumption.md.
-        /// </summary>
+        /// <summary>EC/s for this experiment right now, or 0 if the feature
+        /// is off - a single frozen value doubles as "disabled" and
+        /// "rate".</summary>
         internal static float ComputeECRate(ScienceExperiment experiment)
         {
             if (experiment == null || HighLogic.CurrentGame == null)
@@ -80,14 +113,24 @@ namespace TimeForScience
         }
 
         /// <summary>Whether the idle Deploy-button estimate should read as
-        /// EC/s instead of a lump total - a plain display preference (user
-        /// request 2026-07-21), not tied to any specific power mod.</summary>
+        /// EC/s instead of a lump total.</summary>
         internal static bool ShowECAsRate
         {
             get
             {
                 TimeForScienceSettings settings = HighLogic.CurrentGame?.Parameters.CustomParams<TimeForScienceSettings>();
                 return settings != null && settings.ShowECRateInsteadOfTotal;
+            }
+        }
+
+        /// <summary>Whether time on a different biome (same situation) gets
+        /// banked instead of wasted while a run is active elsewhere.</summary>
+        internal static bool BankedProgressEnabled
+        {
+            get
+            {
+                TimeForScienceSettings settings = HighLogic.CurrentGame?.Parameters.CustomParams<TimeForScienceSettings>();
+                return settings != null && settings.EnableBankedProgress;
             }
         }
     }
