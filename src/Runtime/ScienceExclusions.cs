@@ -1,19 +1,16 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace TimeForScience
 {
     /// <summary>
-    /// Configurable exclusions from timing and/or EC consumption, by
-    /// experimentID. No hardcoded IDs in code: the stock defaults ship as
-    /// active entries in Config/Exclusions.cfg, same mechanism a custom or
-    /// modded experimentID uses. Entries load lazily on first use, so there's
-    /// no scene-timing dependency on GameDatabase being fully populated.
+    /// Per-experimentID exclusions from timing and/or EC, loaded lazily from
+    /// Config/Exclusions.cfg so there's no dependency on GameDatabase timing.
     /// </summary>
     internal static class ScienceExclusions
     {
         private static readonly HashSet<string> timerExclusions = new HashSet<string>();
         private static readonly HashSet<string> ecExclusions = new HashSet<string>();
+        private static readonly HashSet<string> bankingExclusions = new HashSet<string>();
         private static bool loaded;
 
         internal static bool IsExcludedFromTimer(string experimentId)
@@ -26,6 +23,15 @@ namespace TimeForScience
         {
             EnsureLoaded();
             return ecExclusions.Contains(experimentId);
+        }
+
+        /// <summary>Timer-excluded experiments never bank anyway (no run is
+        /// ever registered for them) - this only matters for a timed
+        /// experiment the player wants excluded from banking specifically.</summary>
+        internal static bool IsExcludedFromBanking(string experimentId)
+        {
+            EnsureLoaded();
+            return bankingExclusions.Contains(experimentId);
         }
 
         private static void EnsureLoaded()
@@ -46,8 +52,10 @@ namespace TimeForScience
 
                 bool excludeTimer = false;
                 bool excludeEc = false;
+                bool excludeBanking = false;
                 node.TryGetValue("excludeFromTimer", ref excludeTimer);
                 node.TryGetValue("excludeFromEC", ref excludeEc);
+                node.TryGetValue("excludeFromBanking", ref excludeBanking);
 
                 if (excludeTimer)
                 {
@@ -57,9 +65,11 @@ namespace TimeForScience
                 {
                     ecExclusions.Add(id);
                 }
+                if (excludeBanking)
+                {
+                    bankingExclusions.Add(id);
+                }
             }
-
-            Debug.Log($"[TimeForScience] Exclusions loaded: {timerExclusions.Count} from timer, {ecExclusions.Count} from EC");
         }
     }
 }

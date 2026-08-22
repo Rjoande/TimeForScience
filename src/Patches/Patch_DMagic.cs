@@ -1,20 +1,13 @@
 using System.Reflection;
 using HarmonyLib;
-using UnityEngine;
 
 namespace TimeForScience
 {
     /// <summary>
-    /// Interception for DMModuleScienceAnimateGeneric.
-    ///
-    /// runExperiment(bool silent) is the exact analogue of the stock
-    /// OnScienceComplete: called after canConduct(), the deploy animation and
-    /// the ElectricCharge drain, right before data creation and the results
-    /// dialog. Well above Mono's 20-byte inline limit, so a plain prefix works
-    /// here (unlike the stock path, which needs the coroutine MoveNext
-    /// technique; never patch DMagic's DeployExperiment - it's inlined). All
-    /// patches in this file are gated by Prepare(): if the DMagic DLL is
-    /// absent, nothing is attempted.
+    /// runExperiment(bool silent) is DMagic's analogue of stock's
+    /// OnScienceComplete - called right before data creation and the results
+    /// dialog, well above Mono's inline limit so a plain prefix works here.
+    /// All patches gated by Prepare(): no-op if DMagic isn't installed.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_DMagic_RunExperiment
@@ -79,13 +72,11 @@ namespace TimeForScience
 
             if (scienceValue < ScienceTiming.ScienceEpsilon)
             {
-                Debug.Log($"[TimeForScience] {experiment.id}: value ~0 for {subjectId}, running instantly");
                 return true;
             }
 
             double seconds = ScienceTiming.ComputeRunSeconds(scienceValue, __instance.vessel);
             float ecRate = TimeForScienceSettings.ComputeECRate(experiment);
-            Debug.Log($"[TimeForScience] DMagic run registered: {subjectId}, value={scienceValue:F2}, {seconds:F1}s");
             scenario.TryRegisterRun(__instance, subjectId, body.name, situation, seconds, showDialog: !silent,
                 biome, dataAmount, __instance.xmitDataScalar, scienceValueRatio: 1f, isDMagic: true,
                 experimentsLimit: DMagicBridge.GetExperimentsLimit(__instance),

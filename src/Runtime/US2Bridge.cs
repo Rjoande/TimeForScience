@@ -5,16 +5,9 @@ using HarmonyLib;
 namespace TimeForScience
 {
     /// <summary>
-    /// Soft-dependency access to Universal Storage 2's USAdvancedScience
-    /// (GooBayWedge, MapCamWedge, MatBayWedge). Unlike DMagic,
-    /// experiment/xmitDataScalar/scienceValueRatio are public fields
-    /// inherited straight from ModuleScienceExperiment, so this bridge only
-    /// needs to resolve the type, the private RunExperiment(bool,bool)
-    /// method, and the experimentsLimit field.
-    ///
-    /// USSimpleScience needs no bridge at all: it chains to the real base
-    /// ModuleScienceExperiment coroutine, already covered by
-    /// Patch_ModuleScienceExperiment.cs.
+    /// Soft-dependency access to US2's USAdvancedScience: only RunExperiment
+    /// and experimentsLimit need resolving, other fields are public/inherited.
+    /// USSimpleScience needs no bridge - it uses the plain stock coroutine.
     /// </summary>
     internal static class US2Bridge
     {

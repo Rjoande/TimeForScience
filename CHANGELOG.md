@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.1] — Exclusion config additions and cleanup
+
+### Added
+
+- `evaScience` added to the default exclusions (`Config/Exclusions.cfg`), alongside `evaReport` and `surfaceSample`: always instantaneous, never draws EC.
+- New `excludeFromBanking` field in `Config/Exclusions.cfg`: excludes an experiment from banking progress on other biomes specifically, even with the Difficulty Setting on. Redundant (but harmless) on anything already `excludeFromTimer = true`, since an instantaneous experiment never has an active run to bank against.
+
+### Changed
+
+- Internal cleanup: removed leftover development diagnostic logging (per-run/per-patch debug messages) and trimmed overly verbose code comments. No behavior change.
+
 ## [0.2.0] — Banked progress and RealBattery compatibility
 
 ### Added

@@ -36,8 +36,7 @@ namespace TimeForScience
             // Piggybacks on this class's existing MainMenu timing instead of
             // adding a whole addon for one call. Safe even if RealBattery
             // isn't installed.
-            bool realBatteryLedger = RealBatteryPowerLedgerWrapper.Init();
-            Debug.Log($"[TimeForScience] RealBatteryPowerLedgerWrapper.Init(): installed={realBatteryLedger}, ContractVersion={RealBatteryPowerLedgerWrapper.ContractVersion}");
+            RealBatteryPowerLedgerWrapper.Init();
 
             // Detect this mod's DLL loaded from anywhere other than the expected path
             // (also catches duplicate copies, since only one can be in the right place).

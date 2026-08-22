@@ -1,23 +1,13 @@
 using System.Reflection;
 using HarmonyLib;
-using UnityEngine;
 
 namespace TimeForScience
 {
     /// <summary>
-    /// Interception point for stock experiments. The obvious targets
-    /// (OnScienceComplete, resetExperiment) are 18/14 bytes of IL - under
-    /// Mono's 20-byte JIT inline limit - so a detour on them is never reached.
-    /// Instead we patch the coroutine state machines' MoveNext: Unity invokes
-    /// them through IEnumerator interface dispatch, which can never be inlined.
-    ///
-    /// The first MoveNext (state 0) runs synchronously inside StartCoroutine,
-    /// at the exact moment the small stub would have run: past every stock
-    /// pre-check, the overwrite-memory dialog and the fx animations, and
-    /// before Deployed is set. A run worth ~0 science is left alone (instant);
-    /// otherwise the completion is deferred to TimeForScienceScenario, which
-    /// re-invokes OnScienceComplete under an IsCompleting guard so the
-    /// untouched stock completion (popup, GameEvents, persistence) runs later.
+    /// Stock's OnScienceComplete/resetExperiment stubs are too small for
+    /// Harmony to detour (Mono inlines them), so this patches their coroutine
+    /// MoveNext instead - state 0 is the run's first step, before any stock
+    /// completion logic runs.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_OnScienceCompleteDelay_MoveNext
@@ -49,17 +39,12 @@ namespace TimeForScience
                 return true;
             }
 
-            // No GetType() restriction: OnScienceCompleteDelay/resetExperiment
-            // are private and non-virtual, so a subclass can only reach this
-            // coroutine by explicitly calling the base implementation, which
-            // makes our interception exactly as correct for it as for a plain
-            // stock module. Subclasses with their own independent deploy flow
-            // (DMagic, US2's USAdvancedScience) never call into this coroutine
-            // at all - they get their own dedicated patch instead.
+            // No GetType() check needed: this coroutine is private/non-virtual,
+            // so subclasses only reach it via an explicit base call - DMagic/
+            // US2 have their own independent deploy flow and their own patch.
             TimeForScienceScenario scenario = TimeForScienceScenario.Instance;
             if (scenario == null)
             {
-                Debug.LogWarning("[TimeForScience] TimeForScienceScenario.Instance is NULL, experiment runs untimed");
                 return true;
             }
 
@@ -95,7 +80,6 @@ namespace TimeForScience
 
             if (scienceValue < ScienceTiming.ScienceEpsilon)
             {
-                Debug.Log($"[TimeForScience] {module.experimentID}: value ~0 for {subjectId}, running instantly");
                 return true;
             }
 
@@ -104,7 +88,6 @@ namespace TimeForScience
             float dataAmount = module.experiment.baseValue * module.experiment.dataScale;
             float ecRate = TimeForScienceSettings.ComputeECRate(module.experiment);
 
-            Debug.Log($"[TimeForScience] stock run registered: {subjectId}, value={scienceValue:F2}, {seconds:F1}s");
             scenario.TryRegisterRun(module, subjectId, body.name, situation, seconds, showDialogAfter,
                 biome, dataAmount, module.xmitDataScalar, module.scienceValueRatio, isDMagic: false,
                 experimentsLimit: 1, isUS2Advanced: false, overwrite: false, ecRate: ecRate);
@@ -117,10 +100,8 @@ namespace TimeForScience
     }
 
     /// <summary>
-    /// Resetting an experiment while a run is active aborts it with no data.
-    /// Same MoveNext technique as above. Side-effect only: the stock reset
-    /// always proceeds - on an undeployed module it is harmless and doubles
-    /// as our "cancel" animation for free.
+    /// Aborts an active run before the stock reset proceeds - harmless on an
+    /// undeployed module, so it doubles as our "cancel" animation for free.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_ResetExperiment_MoveNext

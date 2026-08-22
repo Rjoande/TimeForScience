@@ -1,10 +1,8 @@
 namespace TimeForScience
 {
-    /// <summary>Banked observation time for a subject not currently being
-    /// run, keyed by the exact module and subject it applies to. Carries its
-    /// own frozen subject components (mirroring TimeForScienceRun) so its
-    /// remaining time can be recomputed fresh for display without a live
-    /// module - a bank entry can outlive the run that created it.</summary>
+    /// <summary>Banked observation time for a subject not currently running.
+    /// Carries its own frozen subject components (like TimeForScienceRun) so
+    /// its remaining time can be recomputed without a live module.</summary>
     internal class ScienceBankEntry
     {
         internal uint PartFlightId;

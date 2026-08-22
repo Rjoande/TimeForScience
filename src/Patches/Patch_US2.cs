@@ -4,16 +4,9 @@ using HarmonyLib;
 namespace TimeForScience
 {
     /// <summary>
-    /// Interception for Universal Storage 2's USAdvancedScience (GooBayWedge,
-    /// MapCamWedge, MatBayWedge). Architecturally a near-twin of DMagic's
-    /// runExperiment: its own independent RunExperiment(bool silent, bool
-    /// overwrite), called after CanConduct() and any deploy animation, right
-    /// before MakeData() creates the ScienceData. Well above Mono's inline
-    /// limit, so a plain prefix works (never patch DeployExperiment() that
-    /// calls into it - it's inlined). Unlike DMagic, experiment/
-    /// xmitDataScalar are public inherited fields - no reflection needed for
-    /// the science math itself. All patches gated by Prepare(): no US2
-    /// install, no patch attempted.
+    /// RunExperiment(bool,bool) is US2's analogue of DMagic's runExperiment -
+    /// called right before ScienceData creation, well above Mono's inline
+    /// limit so a plain prefix works. Gated by Prepare(): no-op without US2.
     /// </summary>
     [HarmonyPatch]
     internal static class Patch_US2_RunExperiment
@@ -59,9 +52,7 @@ namespace TimeForScience
             string subjectId = ScienceTiming.ComputeSubjectId(__instance.experiment, body, situation, biome);
 
             // Mirrors MakeData(): plain baseValue*dataScale, no per-instance
-            // scaling multiplier the way DMagic's totalScienceLevel works, and
-            // (like DMagic) scienceValueRatio is NOT passed to the ScienceData
-            // it builds either - ratio 1 here matches that.
+            // scaling, and ratio 1 (like DMagic, MakeData doesn't apply it).
             float dataAmount = __instance.experiment.baseValue * __instance.experiment.dataScale;
             float scienceValue = ScienceTiming.ComputeScienceValueForData(dataAmount, __instance.experiment, body, situation, biome, subjectId, 1f);
 

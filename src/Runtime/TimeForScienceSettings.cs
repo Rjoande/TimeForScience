@@ -5,9 +5,8 @@ using KSP.Localization;
 namespace TimeForScience
 {
     /// <summary>
-    /// Difficulty Settings for the optional Electric Charge consumption
-    /// feature. Off by default. Applies in any game mode - EC is a
-    /// resource-management concern, not tied to career progression.
+    /// Difficulty Settings for EC consumption and banked progress, both off
+    /// by default. Applies in any game mode.
     /// </summary>
     public class TimeForScienceSettings : GameParameters.CustomParameterNode
     {
@@ -58,11 +57,9 @@ namespace TimeForScience
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
-            // Custom is left untouched - it's meant to preserve whatever the
-            // player already set. EC settings follow the stock difficulty
-            // scale (off on Easy, harsher rate on Hard); banked progress is
-            // a convenience rather than a difficulty knob, so it's only on
-            // for Easy and off everywhere else, matching the shipped default.
+            // Custom is left untouched. EC follows the stock difficulty scale;
+            // banked progress is a convenience, not a difficulty knob, so
+            // it's only on for Easy.
             switch (preset)
             {
                 case GameParameters.Preset.Easy:

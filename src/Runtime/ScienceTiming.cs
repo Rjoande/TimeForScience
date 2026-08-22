@@ -97,10 +97,9 @@ namespace TimeForScience
         }
 
         /// <summary>
-        /// Full breakdown duration ("1h 12m 54s", "1m 39s", "39s"), dropping
-        /// only the leading units that are zero. No stock utility fits:
-        /// KSPUtil.PrintTimeCompact uses the in-game calendar (6-hour Kerbin
-        /// days) rather than plain h/m/s letters.
+        /// Formats as "1h 12m 54s"/"1m 39s"/"39s", dropping leading zero
+        /// units. No stock utility fits: KSPUtil.PrintTimeCompact uses the
+        /// in-game calendar's 6-hour Kerbin days instead of plain h/m/s.
         /// </summary>
         internal static string FormatRemaining(double secondsRemaining)
         {

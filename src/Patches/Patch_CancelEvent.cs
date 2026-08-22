@@ -4,31 +4,19 @@ using KSP.Localization;
 namespace TimeForScience
 {
     /// <summary>
-    /// Injects two sets of custom PAW elements, hidden by default and toggled
-    /// by TimeForScienceScenario: a "Cancel observation" button, and a fixed
-    /// pool of inert rows (grouped into a collapsible "Banked biomes"
-    /// section) that TimeForScienceScenario relabels/shows or hides each
-    /// refresh. ModuleScienceExperiment.OnStart is a large method, nowhere
-    /// near Mono's inline limit, so a plain postfix is safe here - unlike the
-    /// deploy/reset coroutines.
-    ///
-    /// DMagic's own OnStart calls base.OnStart(state) before its own setup, so
-    /// this single postfix reaches DMagic instances too without a separate
-    /// patch. Deliberately NOT restricted by GetType(): the injected elements
-    /// are harmless (stay inactive forever) on any ModuleScienceExperiment-
-    /// family module we never register a run for.
+    /// Injects the "Cancel observation" button and the inert "Banked biomes"
+    /// row pool, both hidden by default and toggled by TimeForScienceScenario.
+    /// OnStart is well above Mono's inline limit, so a plain postfix works
+    /// (and reaches DMagic too, since its OnStart calls base.OnStart first).
     /// </summary>
     [HarmonyPatch(typeof(ModuleScienceExperiment), "OnStart")]
     internal static class Patch_InjectCancelEvent
     {
         internal const string CancelEventName = "T4S_CancelObservation";
 
-        // A KSPField-style list would need a real backing FieldInfo we don't
-        // have on a stock module; a fixed pool of inert BaseEvents sharing
-        // one groupName is the same technique already proven for the cancel
-        // button, just repeated. UIPartActionWindow groups purely by the
-        // group's name string, and skips inactive events entirely, so an
-        // all-inactive pool never even creates the group.
+        // Fixed pool of inert BaseEvents sharing one groupName, same technique
+        // as the cancel button: UIPartActionWindow groups purely by that name
+        // string and skips inactive events, so an empty pool shows nothing.
         internal const int BankRowCount = 6;
         internal const string BankGroupName = "T4S_Banking";
 

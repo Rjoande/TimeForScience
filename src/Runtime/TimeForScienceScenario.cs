@@ -8,12 +8,10 @@ using UnityEngine;
 namespace TimeForScience
 {
     /// <summary>
-    /// Registry and per-frame tick for hidden experiment runs. Tracks the
-    /// active vessel, other loaded-but-inactive vessels, and unloaded vessels
-    /// alike. Completion on a live module re-invokes the untouched
-    /// stock/DMagic/US2 method; completion on an unloaded vessel injects a
-    /// ScienceData node into the protopart's saved ConfigNode and posts an
-    /// inbox message.
+    /// Per-frame tick for hidden experiment runs, across active/inactive/
+    /// unloaded vessels. Completion on a live module re-invokes the untouched
+    /// stock/DMagic/US2 method; on an unloaded vessel it injects a ScienceData
+    /// node directly and posts an inbox message.
     /// </summary>
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER)]
     public class TimeForScienceScenario : ScenarioModule
@@ -79,10 +77,9 @@ namespace TimeForScience
         }
 
         /// <summary>
-        /// Registers a new hidden run for this module; the PAW Deploy button
-        /// doubles as the live countdown until completion, and re-triggers are
-        /// swallowed by the HasRun guard in the patches. No-op if a run is
-        /// already active for this exact module.
+        /// Registers a new hidden run; the Deploy button doubles as the live
+        /// countdown, re-triggers swallowed by the HasRun guard in the
+        /// patches. No-op if already active for this module.
         /// </summary>
         internal void TryRegisterRun(
             ModuleScienceExperiment module,
@@ -149,10 +146,9 @@ namespace TimeForScience
                 5f, ScreenMessageStyle.UPPER_LEFT);
         }
 
-        /// <summary>Aborts a run for a module we still have a live reference to.
-        /// No-op if this module has no active run. Always triggered by the
-        /// player acting on the module directly, so the owning vessel is
-        /// necessarily the active one - a plain screen message is enough.</summary>
+        /// <summary>Aborts a run for a module we still hold a live reference
+        /// to (no-op if none active). Always player-triggered on the active
+        /// vessel, so a plain screen message is enough.</summary>
         internal void AbortRun(ModuleScienceExperiment module, string locKey)
         {
             TimeForScienceRun run = FindRun(module);
@@ -302,6 +298,7 @@ namespace TimeForScience
                     }
                     else if (TimeForScienceSettings.BankedProgressEnabled
                         && run.Rerunnable
+                        && !ScienceExclusions.IsExcludedFromBanking(run.ExperimentId)
                         && !string.IsNullOrEmpty(currentSubjectId)
                         && (int)currentSituation == run.Situation
                         && VesselHasScienceContainer(ownerVessel))
@@ -342,10 +339,8 @@ namespace TimeForScience
         }
 
         /// <summary>Advances EC bookkeeping for this tick's dt and returns
-        /// the seconds to credit - shared by progress toward the frozen
-        /// subject and by banked progress toward a different one, since it's
-        /// the same instrument drawing from the same power budget either
-        /// way.</summary>
+        /// the seconds to credit - shared by the frozen subject's progress
+        /// and by banked progress, same instrument/power budget either way.</summary>
         private static double ComputeEffectiveDt(TimeForScienceRun run, ModuleScienceExperiment liveModule, Vessel vessel, double dt, double now)
         {
             if (run.ECRate <= 0f)
@@ -366,12 +361,9 @@ namespace TimeForScience
             return ApplyPowerThrottle(run, liveModule, vessel, dt);
         }
 
-        /// <summary>Credits time toward a subject other than the one this
-        /// run is frozen on. Uses the plain stock value formula as an
-        /// approximation for this gate only (never DMagic's totalScienceLevel
-        /// scaling) - actual payout is always recomputed by the real deploy
-        /// patches once a run starts on that subject. Returns whether
-        /// anything was credited (false if pruned as exhausted).</summary>
+        /// <summary>Credits time toward a subject other than the one this run
+        /// is frozen on. Uses the plain stock value formula as an approximation
+        /// (real payout is recomputed later by the actual deploy patches).</summary>
         private bool TryBankProgress(TimeForScienceRun run, Vessel vessel, ModuleScienceExperiment liveModule, string subjectId, string biome, double dt, double now)
         {
             ScienceExperiment experiment = liveModule != null
@@ -445,9 +437,8 @@ namespace TimeForScience
         }
 
         /// <summary>Removes and returns whatever time is banked for this
-        /// exact module+subject, or 0 if none. Honors existing banked time
-        /// even if banking is currently disabled - the toggle only gates
-        /// accruing new banked time, not spending what's already there.</summary>
+        /// module+subject, or 0 if none. Honored even if banking is currently
+        /// disabled - the toggle only gates accruing new time, not spending it.</summary>
         private double ConsumeBank(uint partFlightId, int moduleIndex, string subjectId)
         {
             ScienceBankEntry entry = FindBank(partFlightId, moduleIndex, subjectId);
@@ -460,12 +451,9 @@ namespace TimeForScience
         }
 
         /// <summary>
-        /// Draws run.ECRate * dt from the vessel and eases run.Throttle toward
-        /// however much was actually available, then returns dt scaled by the
-        /// (already-updated) throttle. Ramping rather than snapping means a
-        /// one-off short draw failure only nudges progress, not halts it, and
-        /// a huge background/warp tick collapses to a plain instantaneous
-        /// ratio anyway, so one code path serves both cases.
+        /// Draws run.ECRate * dt and eases run.Throttle toward what was
+        /// actually available, returning dt scaled by the throttle. Ramping
+        /// (not snapping) means a short draw failure only nudges progress.
         /// </summary>
         private const float ThrottleRampPerSecond = 0.5f;
 
@@ -482,9 +470,8 @@ namespace TimeForScience
         }
 
         /// <summary>Reports EC debt accrued while unloaded via RealBattery's
-        /// power-reporting contract now that the vessel is loaded. Any
-        /// remainder it couldn't cover stays queued, with a fresh reporting
-        /// window, for the next tick's report.</summary>
+        /// power-reporting contract, now that the vessel is loaded. Any
+        /// uncovered remainder stays queued for the next tick's report.</summary>
         private static void SettleECDebt(TimeForScienceRun run, Vessel vessel, double now)
         {
             double elapsed = now - run.DebtSinceUT;
@@ -493,10 +480,9 @@ namespace TimeForScience
             run.DebtSinceUT = now;
         }
 
-        /// <summary>Loaded vessels draw plain ElectricCharge via
-        /// Part.RequestResource; RealBattery's own live simulation reconciles
-        /// a loaded vessel's deficit/surplus on its own, no special-casing
-        /// needed here.</summary>
+        /// <summary>Loaded vessels draw plain ElectricCharge; RealBattery's
+        /// own live simulation reconciles deficit/surplus on its own, no
+        /// special-casing needed here.</summary>
         private static float DrawPowerLive(Part part, float needed)
         {
             if (needed <= 0f)
@@ -559,12 +545,9 @@ namespace TimeForScience
         }
 
         /// <summary>
-        /// Finds whatever currently owns this run's part: a live PartModule on
-        /// the active vessel (checked first), a live PartModule on some other
-        /// loaded-but-inactive vessel, or the ProtoPartSnapshot on an unloaded
-        /// vessel. Vessel situation/altitude/lat/lon stay valid for unloaded
-        /// (on-rails) vessels too, so ownerVessel alone is enough to compute
-        /// the current subject without a live module.
+        /// Finds whatever currently owns this run's part: a live PartModule
+        /// (active vessel first, then other loaded ones) or the
+        /// ProtoPartSnapshot on an unloaded vessel.
         /// </summary>
         private static bool TryLocate(TimeForScienceRun run, out Vessel ownerVessel, out ModuleScienceExperiment liveModule, out ProtoPartSnapshot protoPart)
         {
@@ -627,10 +610,9 @@ namespace TimeForScience
             return module != null;
         }
 
-        /// <summary>Subject the module would observe right now, computed the same
-        /// way the module itself will at completion: DMagic modules use their
-        /// own situation/biome logic, stock uses ScienceUtil - the timer only
-        /// advances while this matches the frozen subject.</summary>
+        /// <summary>Subject the module would observe right now, computed the
+        /// same way it will at completion (DMagic uses its own logic, stock
+        /// uses ScienceUtil) - the timer only advances while this matches.</summary>
         private static string ComputeCurrentSubjectId(ModuleScienceExperiment module, out ExperimentSituations situation, out string biome)
         {
             if (DMagicBridge.IsDMagic(module))
@@ -652,10 +634,9 @@ namespace TimeForScience
             return ScienceTiming.ComputeSubjectId(module.experiment, module.vessel.mainBody, situation, biome);
         }
 
-        /// <summary>Same as ComputeCurrentSubjectId, but for an unloaded
-        /// vessel: no live module exists, so this always uses the plain stock
-        /// formula (situation/biome from the Vessel object, which KSP keeps
-        /// updated even on-rails).</summary>
+        /// <summary>Same as ComputeCurrentSubjectId but for an unloaded vessel:
+        /// no live module, so this uses the plain stock formula off the Vessel
+        /// object, which KSP keeps updated even on-rails.</summary>
         private static string ComputeCurrentSubjectIdUnloaded(Vessel vessel, TimeForScienceRun run, out ExperimentSituations situation, out string biome)
         {
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(run.ExperimentId);
@@ -672,10 +653,9 @@ namespace TimeForScience
         }
 
         /// <summary>
-        /// Completes a run on a live module. Only shows the real results
-        /// dialog when this run's vessel is the active one; otherwise
-        /// completes silently and sends the same inbox notification an
-        /// unloaded completion would.
+        /// Completes a run on a live module. Shows the real results dialog
+        /// only if this run's vessel is active; otherwise completes silently
+        /// with the same inbox notification an unloaded completion sends.
         /// </summary>
         private bool CompleteRunLive(ModuleScienceExperiment module, TimeForScienceRun run, bool isActiveVessel)
         {
@@ -719,12 +699,10 @@ namespace TimeForScience
         }
 
         /// <summary>
-        /// Completes a run whose vessel is unloaded: builds the ScienceData
-        /// the module itself would have created and injects it into the
-        /// protopart's saved ConfigNode, then posts an inbox message with the
-        /// results text. Returns false (defer) for multi-slot DMagic or
-        /// US2Advanced experiments (experimentsLimit > 1): their own "keep"
-        /// bookkeeping needs a live module to replicate safely.
+        /// Completes a run whose vessel is unloaded: injects a ScienceData
+        /// node into the protopart's saved ConfigNode and posts an inbox
+        /// message. Defers (returns false) for multi-slot DMagic/US2Advanced,
+        /// whose "keep" bookkeeping needs a live module to replicate safely.
         /// </summary>
         private bool CompleteRunUnloaded(ProtoPartSnapshot protoPart, TimeForScienceRun run, Vessel ownerVessel)
         {
@@ -791,7 +769,6 @@ namespace TimeForScience
 
         /// <summary>
         /// Appends a time estimate to the Deploy button label while idle.
-        /// Only touches buttons the game itself has already decided to show;
         /// DMagic never refreshes its own guiName after OnStart, so without
         /// this poll a moved vessel would keep a stale estimate.
         /// </summary>
@@ -848,11 +825,9 @@ namespace TimeForScience
             }
         }
 
-        /// <summary>Estimated duration (and EC cost/rate, 0 if the feature is
-        /// off) if deployed right now; false for timer-excluded experiments,
-        /// asteroid science, or a subject already worth ~0. Mirrors
-        /// ComputeCurrentSubjectId's stock/DMagic dispatch plus the value calc
-        /// already used by the two deploy patches.</summary>
+        /// <summary>Estimated duration (and EC cost/rate) if deployed right
+        /// now; false for timer-excluded experiments, asteroid science, or a
+        /// subject already worth ~0. Mirrors the deploy patches' own calc.</summary>
         private static bool TryEstimateIdle(ModuleScienceExperiment module, out double seconds, out float ecCost, out float ecRate)
         {
             seconds = 0;
@@ -982,20 +957,16 @@ namespace TimeForScience
         }
 
         /// <summary>
-        /// Populates the "Banked biomes" PAW group for this module: the run
-        /// it's currently deployed on (if any, marked with a leading ">" and
-        /// always first) plus every bank entry for this exact module, sorted
-        /// by remaining time descending. Fixed pool of
-        /// Patch_InjectCancelEvent.BankRowCount rows - once exhausted, the
-        /// last one becomes a "+N more" summary instead of truncating
-        /// silently. Hidden entirely unless banking is enabled and this
-        /// module/vessel actually qualifies to bank (see TickRuns).
+        /// Populates the "Banked biomes" PAW group: the active run first
+        /// (marked ">"), then bank entries sorted by remaining time. Fixed
+        /// row pool - overflow collapses into a "+N more" summary row.
         /// </summary>
         private void RefreshBankGroup(ModuleScienceExperiment module)
         {
             int rowCount = Patch_InjectCancelEvent.BankRowCount;
             bool eligible = TimeForScienceSettings.BankedProgressEnabled
                 && module.rerunnable
+                && !ScienceExclusions.IsExcludedFromBanking(module.experimentID)
                 && VesselHasScienceContainer(module.vessel);
 
             var rows = new List<string>();
@@ -1067,11 +1038,8 @@ namespace TimeForScience
         }
 
         /// <summary>Time still needed on a banked subject, recomputed fresh
-        /// from its frozen components (same approximation as TryBankProgress:
-        /// plain stock value formula) rather than cached - a bank entry can
-        /// sit unconsumed for a long time and its value can change (e.g.
-        /// another vessel submitting the same subject). Negative if the
-        /// subject is gone or exhausted.</summary>
+        /// from its frozen components rather than cached, since its value can
+        /// change while unconsumed. Negative if gone or exhausted.</summary>
         private static double ComputeBankRemaining(ScienceBankEntry bank, Vessel vessel)
         {
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(bank.ExperimentId);

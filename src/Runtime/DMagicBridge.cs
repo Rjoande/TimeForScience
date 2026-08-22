@@ -6,9 +6,8 @@ namespace TimeForScience
 {
     /// <summary>
     /// Soft-dependency access to DMModuleScienceAnimateGeneric, resolved by
-    /// name so TimeForScience has no compile-time reference to the DMagic
-    /// DLL. Newer builds use namespace DMModuleScienceAnimateGeneric_NM;
-    /// older ones use the un-suffixed namespace, so both are tried.
+    /// name (no compile-time reference to the DMagic DLL); tries both the
+    /// suffixed and un-suffixed namespace across DMagic versions.
     /// </summary>
     internal static class DMagicBridge
     {
