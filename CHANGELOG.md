@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.3 - Spanish & Russian
+
+- Added **Spanish** (`es-es`) and **Russian** (`ru`) - thanks to **MOPC222**.
+
 ## v0.2.2 - Brazilian Portuguese
 
 - Added **Brazilian Portuguese** (`pt-br`) - thanks to **celino**.
