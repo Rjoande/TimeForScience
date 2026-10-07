@@ -1,0 +1,30 @@
+{
+    "NAME": "Time For Science",
+    "URL": "https://raw.githubusercontent.com/Rjoande/TimeForScience/main/GameData/TimeForScience/TimeForScience.version",
+    "DOWNLOAD": "https://github.com/Rjoande/TimeForScience/releases/latest",
+    "GITHUB": {
+        "USERNAME": "Rjoande",
+        "REPOSITORY": "TimeForScience",
+        "ALLOW_PRE_RELEASE": false
+    },
+    "VERSION": {
+        "MAJOR": 0,
+        "MINOR": 2,
+        "PATCH": 3
+    },
+    "KSP_VERSION": {
+        "MAJOR": 1,
+        "MINOR": 12,
+        "PATCH": 99
+    },
+    "KSP_VERSION_MIN": {
+        "MAJOR": 1,
+        "MINOR": 12,
+        "PATCH": 0
+    },
+    "KSP_VERSION_MAX": {
+        "MAJOR": 1,
+        "MINOR": 12,
+        "PATCH": 99
+    }
+}

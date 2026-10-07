@@ -3,6 +3,7 @@
 ## v0.2.3 - Spanish & Russian
 
 - Added **Spanish** (`es-es`) and **Russian** (`ru`) - thanks to **MOPC222**.
+- CKAN optimization.
 
 ## v0.2.2 - Brazilian Portuguese
 

@@ -33,7 +33,9 @@ Works with stock science modules plus:
 
 ## Installation
 
-Copy the contents of this repository into your `GameData` folder, so you end up with `GameData/TimeForScience/...`. Make sure Harmony 2 is installed alongside it.
+Available through [CKAN](https://github.com/KSP-CKAN/CKAN) (search for "Time For Science"), which also installs Harmony 2 for you.
+
+To install manually, copy the contents of this repository into your `GameData` folder, so you end up with `GameData/TimeForScience/...`. Make sure Harmony 2 is installed alongside it.
 
 ## Known limitations
 

@@ -6,7 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <AssemblyName>TimeForScience</AssemblyName>
     <RootNamespace>TimeForScience</RootNamespace>
-    <Version>0.2.2</Version>
+    <Version>0.2.3</Version>
     <DebugType>none</DebugType>
     <!-- KSP install used for reference assemblies; override with -p:KspRoot=... -->
     <KspRoot Condition="'$(KspRoot)' == ''">E:\SteamBackup\Kerbal Space Program</KspRoot>

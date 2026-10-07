@@ -1,0 +1,18 @@
+spec_version: v1.4
+identifier: TimeForScience
+name: Time For Science
+abstract: Science experiments take real time to complete, proportional to the science they yield
+author: Rjoande
+$kref: '#/ckan/github/Rjoande/TimeForScience'
+$vref: '#/ckan/ksp-avc'
+license: MIT
+x_netkan_version_edit: '^[vV]?(?<version>.+)$'
+resources:
+  homepage: https://forum.kerbalspaceprogram.com/topic/231557-*
+tags:
+  - plugin
+  - science
+depends:
+  - name: Harmony2
+conflicts:
+  - name: ExperimentsTakeTime
