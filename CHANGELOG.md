@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Fixed Italian localization.
+
 ## v0.2.3 - Spanish & Russian
 
 - Added **Spanish** (`es-es`) and **Russian** (`ru`) - thanks to **MOPC222**.
