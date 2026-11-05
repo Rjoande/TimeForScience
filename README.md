@@ -13,6 +13,7 @@ A magnetometer reading over Kerbin takes seconds. A first survey of a distant bi
 - **Idle time estimate.** The Deploy button shows the expected duration before you even start.
 - **Explicit cancel control**, reachable from EVA too, visible only while an observation is actually running.
 - **Optional Electric Charge consumption** (Difficulty Settings, off by default): draws EC per second proportional to the experiment's base science value. A brief power shortfall ramps progress down rather than hard-pausing it, so temporary shade or a shadowed orbit doesn't stall everything outright. The idle-button estimate can show either a total EC cost or an EC/s rate, whichever you prefer.
+- **Off in Sandbox by default**: Sandbox has no science to earn, so every experiment stays stock-instant there unless you tick *Enable in Sandbox Mode* in the Difficulty Settings.
 - **Configurable exclusions**: crew report, EVA report and surface sample stay quick/free by default; add your own custom or modded experiment IDs to `Config/Exclusions.cfg` to exclude them from the timer and/or from EC consumption too.
 
 ## Compatibility

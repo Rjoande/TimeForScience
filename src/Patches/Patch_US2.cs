@@ -22,7 +22,7 @@ namespace TimeForScience
         private static bool Prefix(ModuleScienceExperiment __instance, bool silent, bool overwrite)
         {
             TimeForScienceScenario scenario = TimeForScienceScenario.Instance;
-            if (scenario == null || scenario.IsCompleting(__instance))
+            if (scenario == null || !TimeForScienceSettings.ModActive || scenario.IsCompleting(__instance))
             {
                 return true;
             }

@@ -24,6 +24,9 @@ namespace TimeForScience
         private const float IdleLabelRefreshInterval = 1f;
         private float nextIdleLabelRefresh;
 
+        // One-shot cleanup per inactive stretch (Sandbox without the opt-in).
+        private bool inertCleanupDone;
+
         public override void OnAwake()
         {
             Instance = this;
@@ -235,6 +238,17 @@ namespace TimeForScience
                 return;
             }
 
+            if (!TimeForScienceSettings.ModActive)
+            {
+                if (!inertCleanupDone)
+                {
+                    inertCleanupDone = true;
+                    ClearForInactiveMod(scene);
+                }
+                return;
+            }
+            inertCleanupDone = false;
+
             if (runs.Count > 0)
             {
                 TickRuns();
@@ -244,6 +258,61 @@ namespace TimeForScience
             {
                 nextIdleLabelRefresh = Time.time + IdleLabelRefreshInterval;
                 RefreshIdleLabels();
+            }
+        }
+
+        /// <summary>Mod switched off mid-game (Sandbox opt-in unticked): cancels
+        /// every run and hands the PAW back to stock.</summary>
+        private void ClearForInactiveMod(GameScenes scene)
+        {
+            for (int i = runs.Count - 1; i >= 0; i--)
+            {
+                TimeForScienceRun run = runs[i];
+                if (TryLocate(run, out Vessel ownerVessel, out ModuleScienceExperiment liveModule, out ProtoPartSnapshot _))
+                {
+                    AbortRunInternal(run, liveModule, ownerVessel, "#LOC_T4S_AbortedReset");
+                }
+                else
+                {
+                    runs.RemoveAt(i);
+                }
+            }
+
+            if (scene != GameScenes.FLIGHT || FlightGlobals.VesselsLoaded == null)
+            {
+                return;
+            }
+
+            foreach (Vessel vessel in FlightGlobals.VesselsLoaded)
+            {
+                foreach (Part part in vessel.Parts)
+                {
+                    foreach (PartModule partModule in part.Modules)
+                    {
+                        var module = partModule as ModuleScienceExperiment;
+                        if (module == null)
+                        {
+                            continue;
+                        }
+
+                        BaseEvent deploy = module.Events["DeployExperiment"];
+                        if (deploy != null)
+                        {
+                            deploy.guiName = module.experimentActionName;
+                        }
+
+                        SetCancelActive(module, false);
+
+                        for (int row = 0; row < Patch_InjectCancelEvent.BankRowCount; row++)
+                        {
+                            BaseEvent rowEvent = module.Events[Patch_InjectCancelEvent.BankRowEventName(row)];
+                            if (rowEvent != null)
+                            {
+                                rowEvent.active = false;
+                            }
+                        }
+                    }
+                }
             }
         }
 

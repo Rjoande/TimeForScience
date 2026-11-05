@@ -39,7 +39,7 @@ namespace TimeForScience
             // No GetType() check needed: this coroutine is private/non-virtual,
             // and DMagic/US2 have their own deploy flow and their own patches.
             TimeForScienceScenario scenario = TimeForScienceScenario.Instance;
-            if (scenario == null)
+            if (scenario == null || !TimeForScienceSettings.ModActive)
             {
                 return true;
             }

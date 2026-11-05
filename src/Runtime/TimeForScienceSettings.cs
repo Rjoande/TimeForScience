@@ -5,7 +5,7 @@ using KSP.Localization;
 namespace TimeForScience
 {
     /// <summary>Difficulty Settings for EC consumption and banked progress,
-    /// both off by default. Applies in any game mode.</summary>
+    /// both off by default, plus the Sandbox opt-in (off: mod inert).</summary>
     public class TimeForScienceSettings : GameParameters.CustomParameterNode
     {
         public override string Title => Localizer.Format("#LOC_T4S_ModName");
@@ -15,6 +15,11 @@ namespace TimeForScience
         public override string DisplaySection => Localizer.Format("#LOC_T4S_ModName");
         public override int SectionOrder => 1;
         public override bool HasPresets => true;
+
+        // Sandbox has no R&D: every run would cost a first-time value forever.
+        // Shown only in Sandbox games; untouched by presets.
+        [GameParameters.CustomParameterUI("#LOC_T4S_Settings_EnableInSandbox", toolTip = "#LOC_T4S_Settings_EnableInSandbox_Tooltip", gameMode = GameParameters.GameMode.SANDBOX)]
+        public bool EnableInSandbox = false;
 
         [GameParameters.CustomParameterUI("#LOC_T4S_Settings_EnableEC", toolTip = "#LOC_T4S_Settings_EnableEC_Tooltip")]
         public bool EnableECConsumption = false;
@@ -112,6 +117,23 @@ namespace TimeForScience
             {
                 TimeForScienceSettings settings = HighLogic.CurrentGame?.Parameters.CustomParams<TimeForScienceSettings>();
                 return settings != null && settings.ShowECRateInsteadOfTotal;
+            }
+        }
+
+        /// <summary>False only in a Sandbox game without the opt-in: the mod then
+        /// leaves every experiment to stock and ticks nothing.</summary>
+        internal static bool ModActive
+        {
+            get
+            {
+                Game game = HighLogic.CurrentGame;
+                if (game == null || game.Mode != Game.Modes.SANDBOX)
+                {
+                    return true;
+                }
+
+                TimeForScienceSettings settings = game.Parameters.CustomParams<TimeForScienceSettings>();
+                return settings != null && settings.EnableInSandbox;
             }
         }
 

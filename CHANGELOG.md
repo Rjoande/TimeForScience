@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- **Sandbox mode**: TimeForScience is now inactive by default in Sandbox games (no science to earn there, so every run cost a first-time value forever). New Difficulty Setting **Enable in Sandbox Mode**, shown only in Sandbox games, opts back in; unticking it mid-game cancels observations in progress.
 - Fixed Italian localization.
 
 ## v0.2.3 - Spanish & Russian
