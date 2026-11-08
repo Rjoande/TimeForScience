@@ -72,7 +72,7 @@ namespace TimeForScience
                 return true;
             }
 
-            double seconds = ScienceTiming.ComputeRunSeconds(scienceValue, __instance.vessel);
+            double seconds = ScienceTiming.ComputeRunSeconds(scienceValue, situation);
             float ecRate = TimeForScienceSettings.ComputeECRate(experiment);
             scenario.TryRegisterRun(__instance, subjectId, body.name, situation, seconds, showDialog: !silent,
                 biome, dataAmount, __instance.xmitDataScalar, scienceValueRatio: 1f, isDMagic: true,

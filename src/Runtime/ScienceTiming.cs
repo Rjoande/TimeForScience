@@ -56,24 +56,23 @@ namespace TimeForScience
         }
 
         /// <summary>Placeholder balancing: one second of run time per point of
-        /// science value, regardless of situation.</summary>
-        internal static double ComputeRunSeconds(float scienceValue, Vessel vessel)
+        /// science value, scaled by the experiment situation's category.</summary>
+        internal static double ComputeRunSeconds(float scienceValue, ExperimentSituations situation)
         {
-            return Math.Max(scienceValue, 0f) * SecondsPerScience(Category(vessel));
+            return Math.Max(scienceValue, 0f) * SecondsPerScience(Category(situation));
         }
 
         private enum TimeCategory { Space, Atmosphere, Surface }
 
-        private static TimeCategory Category(Vessel vessel)
+        private static TimeCategory Category(ExperimentSituations situation)
         {
-            switch (vessel.situation)
+            switch (situation)
             {
-                case Vessel.Situations.ORBITING:
-                case Vessel.Situations.ESCAPING:
-                case Vessel.Situations.DOCKED:
+                case ExperimentSituations.InSpaceLow:
+                case ExperimentSituations.InSpaceHigh:
                     return TimeCategory.Space;
-                case Vessel.Situations.FLYING:
-                case Vessel.Situations.SUB_ORBITAL:
+                case ExperimentSituations.FlyingLow:
+                case ExperimentSituations.FlyingHigh:
                     return TimeCategory.Atmosphere;
                 default:
                     return TimeCategory.Surface;

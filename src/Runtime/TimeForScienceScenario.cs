@@ -896,6 +896,7 @@ namespace TimeForScience
 
             CelestialBody body = module.vessel.mainBody;
             ScienceExperiment experiment;
+            ExperimentSituations situation;
             float scienceValue;
             string subjectId;
 
@@ -912,11 +913,11 @@ namespace TimeForScience
                     return false;
                 }
 
-                ExperimentSituations dmSituation = DMagicBridge.GetSituation(module);
-                string dmBiome = DMagicBridge.GetBiome(module, dmSituation);
-                subjectId = ScienceTiming.ComputeSubjectId(experiment, body, dmSituation, dmBiome);
+                situation = DMagicBridge.GetSituation(module);
+                string dmBiome = DMagicBridge.GetBiome(module, situation);
+                subjectId = ScienceTiming.ComputeSubjectId(experiment, body, situation, dmBiome);
                 float dataAmount = experiment.baseValue * experiment.dataScale * DMagicBridge.GetTotalScienceLevel(module);
-                scienceValue = ScienceTiming.ComputeScienceValueForData(dataAmount, experiment, body, dmSituation, dmBiome, subjectId, 1f);
+                scienceValue = ScienceTiming.ComputeScienceValueForData(dataAmount, experiment, body, situation, dmBiome, subjectId, 1f);
             }
             else
             {
@@ -926,7 +927,7 @@ namespace TimeForScience
                     return false;
                 }
 
-                ExperimentSituations situation = ScienceTiming.ComputeCurrentSituation(module.vessel);
+                situation = ScienceTiming.ComputeCurrentSituation(module.vessel);
                 string biome = ScienceTiming.ComputeBiome(module.vessel, experiment, situation);
                 subjectId = ScienceTiming.ComputeSubjectId(experiment, body, situation, biome);
                 scienceValue = ScienceTiming.ComputeScienceValue(experiment, body, situation, biome, subjectId, module.scienceValueRatio);
@@ -937,7 +938,7 @@ namespace TimeForScience
                 return false;
             }
 
-            seconds = ScienceTiming.ComputeRunSeconds(scienceValue, module.vessel);
+            seconds = ScienceTiming.ComputeRunSeconds(scienceValue, situation);
 
             double banked = Instance?.FindBank(module.part.flightID, module.part.Modules.IndexOf(module), subjectId)?.BankedSeconds ?? 0;
             if (banked > 0)
@@ -1040,7 +1041,7 @@ namespace TimeForScience
                         continue;
                     }
 
-                    double remaining = ComputeBankRemaining(bank, module.vessel);
+                    double remaining = ComputeBankRemaining(bank);
                     if (remaining < 0)
                     {
                         continue;
@@ -1088,7 +1089,7 @@ namespace TimeForScience
         /// <summary>Time still needed on a banked subject, recomputed fresh
         /// from its frozen components rather than cached, since its value can
         /// change while unconsumed. Negative if gone or exhausted.</summary>
-        private static double ComputeBankRemaining(ScienceBankEntry bank, Vessel vessel)
+        private static double ComputeBankRemaining(ScienceBankEntry bank)
         {
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(bank.ExperimentId);
             CelestialBody body = FlightGlobals.GetBodyByName(bank.BodyName);
@@ -1104,7 +1105,7 @@ namespace TimeForScience
                 return -1;
             }
 
-            double neededSeconds = ScienceTiming.ComputeRunSeconds(scienceValue, vessel);
+            double neededSeconds = ScienceTiming.ComputeRunSeconds(scienceValue, situation);
             return System.Math.Max(0, neededSeconds - bank.BankedSeconds);
         }
     }

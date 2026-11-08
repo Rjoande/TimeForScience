@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.5 - Public timing API
+
+- **Public API for other mods**: new `TimeForScience.TimeForScienceAPI` class with `EstimateSeconds(experiment, subject, situation)` and `FormatDuration(seconds)`, so mods like [x] Science! can show how long an experiment will take without copying the formula. It honours the exclusions and Sandbox mode, and follows any future rebalancing. Idea by **celino**.
+- Run durations are now categorised by the experiment situation instead of the vessel situation. No change in practice: all categories still take one second per point of science.
+
 ## v0.2.4 - Sandbox opt-in
 
 - **Sandbox mode**: TimeForScience is now inactive by default in Sandbox games (no science to earn there, so every run cost a first-time value forever). New Difficulty Setting **Enable in Sandbox Mode**, shown only in Sandbox games, opts back in; unticking it mid-game cancels observations in progress.

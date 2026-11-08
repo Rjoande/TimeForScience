@@ -79,7 +79,7 @@ namespace TimeForScience
                 return true;
             }
 
-            double seconds = ScienceTiming.ComputeRunSeconds(scienceValue, module.vessel);
+            double seconds = ScienceTiming.ComputeRunSeconds(scienceValue, situation);
             bool showDialogAfter = StockReflection.GetShowDialogAfter(module);
             float dataAmount = module.experiment.baseValue * module.experiment.dataScale;
             float ecRate = TimeForScienceSettings.ComputeECRate(module.experiment);
