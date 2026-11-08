@@ -2,7 +2,7 @@
 
 ## v0.2.5 - Public timing API
 
-- **Public API for other mods**: new `TimeForScience.TimeForScienceAPI` class with `EstimateSeconds(experiment, subject, situation)` and `FormatDuration(seconds)`, so mods like [x] Science! can show how long an experiment will take without copying the formula. It honours the exclusions and Sandbox mode, and follows any future rebalancing. Idea by **celino**.
+- **Public API for other mods**: new `TimeForScience.TimeForScienceAPI` class with `EstimateSeconds(experiment, subject, situation)` and `FormatDuration(seconds)`. Idea by **celino**.
 - Run durations are now categorised by the experiment situation instead of the vessel situation. No change in practice: all categories still take one second per point of science.
 
 ## v0.2.4 - Sandbox opt-in
