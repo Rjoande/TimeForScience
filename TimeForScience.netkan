@@ -16,3 +16,4 @@ depends:
   - name: Harmony2
 conflicts:
   - name: ExperimentsTakeTime
+  - name: Kerbalism
