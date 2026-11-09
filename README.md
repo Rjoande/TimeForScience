@@ -27,6 +27,8 @@ Works with stock science modules plus:
 
 **Not compatible with ExperimentsTakeTime**, both change stock experiment behavior in incompatible ways (ExperimentsTakeTime renames the stock module via a `:FINAL` patch). Remove or disable ExperimentsTakeTime before installing this mod.
 
+**Not compatible with Kerbalism**, which replaces the stock science system with its own (experiments that already take time and data measured in bytes). Use one or the other.
+
 ## Requirements
 
 - Kerbal Space Program 1.12.5
